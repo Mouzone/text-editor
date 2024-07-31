@@ -3,4 +3,4 @@ project(text_editor C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(text_editor main.c)
+add_executable(text_editor kilo.c)
