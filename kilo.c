@@ -54,10 +54,20 @@ char editorReadKey(void) {
 
 /*** output ***/
 
+void editorDrawRows(void) {
+    int y;
+    for (y = 0; y < 24; y++) {
+        write(STDOUT_FILENO, "~\r\n", 3);
+    }
+}
 void editorRefreshScreen(void) {
     // fills up entire termianl with blank lines, effectively making a blank screen
     write(STDOUT_FILENO, "\x1b[2J", 4);
     // move cursor to top of empty space
+    write(STDOUT_FILENO, "\x1b[H", 3);
+
+    editorDrawRows();
+
     write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
