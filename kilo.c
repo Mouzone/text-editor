@@ -157,11 +157,7 @@ int getWindowSize(int *rows, int *cols) {
 
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
         if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) return -1;
-        editorReadKey();
         return getCursorPosition(rows, cols);
-    }
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-        return -1;
     } else {
         *cols = ws.ws_col;
         *rows = ws.ws_row;
@@ -184,9 +180,8 @@ int editorRowCxToRx(erow *row, int cx) {
 void editorUpdateRow(erow *row) {
     int tabs = 0;
     int j;
-    for (j = 0; j < row->size; j++) {
+    for (j = 0; j < row->size; j++)
         if (row->chars[j] == '\t') tabs++;
-    }
 
     free(row->render);
     row->render = malloc(row->size + tabs*(KILO_TAB_STOP - 1) + 1);
@@ -270,7 +265,10 @@ void editorScroll(void) {
         E.rx = editorRowCxToRx(&E.row[E.cy], E.cx);
     }
 
-    if (E.cy <= E.rowoff + E.screenrows) {
+    if (E.cy < E.rowoff) {
+        E.rowoff = E.cy;
+    }
+    if (E.cy >= E.rowoff + E.screenrows) {
         E.rowoff = E.cy - E.screenrows + 1;
     }
     if (E.rx < E.coloff) {
@@ -288,7 +286,7 @@ void editorDrawRows(struct abuf *ab) {
             if (E.numrows == 0 && y == E.screenrows / 3) {
                 char welcome[80];
                 int welcomelen = snprintf(welcome, sizeof(welcome),
-                    "KILO editor --version %s", KILO_VERSION);
+                    "Kilo editor -- version %s", KILO_VERSION);
                 if (welcomelen > E.screencols) welcomelen = E.screencols;
                 int padding = (E.screencols - welcomelen) / 2;
                 if (padding) {
@@ -313,11 +311,11 @@ void editorDrawRows(struct abuf *ab) {
 }
 
 void editorDrawStatusBar(struct abuf *ab) {
-    abAppend(ab, "\x1b[7,", 4);
+    abAppend(ab, "\x1b[7m", 4);
     char status[80], rstatus[80];
     int len = snprintf(status, sizeof(status), "%.20s - %d lines",
         E.filename ? E.filename : "[No Name]", E.numrows);
-    int rlen = snprintf(status, sizeof(rstatus), "%d/%d",
+    int rlen = snprintf(rstatus, sizeof(rstatus), "%d/%d",
         E.cy + 1, E.numrows);
     if (len > E.screencols) len = E.screencols;
     abAppend(ab, status, len);
@@ -375,7 +373,7 @@ void editorSetStatusMessage(const char *fmt, ...) {
 
 void editorMoveCursor(int key) {
     erow *row = (E.cy >= E.numrows) ? NULL : &E.row[E.cy];
-    switch(key) {
+    switch (key) {
         case ARROW_LEFT:
             if (E.cx != 0) {
                 E.cx--;
@@ -398,7 +396,7 @@ void editorMoveCursor(int key) {
             }
             break;
         case ARROW_DOWN:
-            if (E.cy != E.numrows) {
+            if (E.cy < E.numrows) {
                 E.cy++;
             }
             break;
@@ -478,7 +476,7 @@ int main(int argc, char *argv[]) {
         editorOpen(argv[1]);
     }
 
-    editorSetStatusMessage("HELP: CTRL-Q = quit");
+    editorSetStatusMessage("HELP: Ctrl-Q = quit");
 
     while (1) {
         editorRefreshScreen();
