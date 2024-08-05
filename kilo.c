@@ -177,6 +177,7 @@ int editorRowCxToRx(erow *row, int cx) {
     }
     return rx;
 }
+
 void editorUpdateRow(erow *row) {
     int tabs = 0;
     int j;
@@ -198,6 +199,7 @@ void editorUpdateRow(erow *row) {
     row->render[idx] = '\0';
     row->rsize = idx;
 }
+
 void editorAppendRow(char *s, size_t len) {
     E.row = realloc(E.row, sizeof(erow) * (E.numrows + 1));
 
